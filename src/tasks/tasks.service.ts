@@ -1,25 +1,49 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { Task } from './entities/task.entitie';
 
 @Injectable()
 export class TasksService {
+
+	private tasks: Task[] = [
+];
+
+
+
 	listAllTasks() {
-		return [
-			{ id: 1, task: "Comprar pão" },
-			{ id: 2, task: "Estudar para prova"}
-		]
+		return this.tasks;
 	}
 
 	findOneTask(id: string) {
-		return { id: id, task: "Comprar pão" }
+		const task = this.tasks.find(task => task.id === Number(id));
+		if(task) {
+			return task;
+		}
+		throw new NotFoundException("Tarefa não encontrada");
 	}
 
 	create(body: any) {
-		return body
+		const newId = this.tasks.length + 1;
+		const newTask: Task = {
+			id: newId, 
+			completed: false,
+			...body
+		}
+		this.tasks.push(newTask);
+		return newTask;
 	}
 
 	update(id: string, body: any) {
-		let retorno = { id, body }
-		return retorno
+		const taskIndex = this.tasks.findIndex(task => task.id === Number(id));
+		if(taskIndex === -1) {
+			throw new NotFoundException("Tarefa não encontrada");
+		}
+
+		const taskItem = this.tasks[taskIndex];
+		this.tasks[taskIndex] = {
+			...taskItem,
+			...body
+		}
+		return this.tasks[taskIndex];
 	}
 
 	delete(id: string) {
