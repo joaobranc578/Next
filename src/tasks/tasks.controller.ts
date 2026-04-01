@@ -1,46 +1,60 @@
 import {
 	Controller,
 	Get,
+	Post,
 	Param,
 	Query,
-	Post,
 	Body,
 	Put,
-	Delete
+	Delete,
+	ParseIntPipe,
+	UseInterceptors
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
+import { UpdateTaskDto } from './dto/update.task.dto';
+import { CreateTaskDto } from './dto/create.task.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
+import { LoggerInterceptor } from '../common/interceptors/logger.interceptor';
+import { BodyCreateTaskInterceptor } from 'src/common/interceptors/body-create-task.interceptor';
+import { AddHeaderInterceptor } from 'src/common/interceptors/add-header.interceptor';
 
 @Controller('tasks')
+	//@UseInterceptors(LoggerInterceptor)
+	// Podemos usar o interceptor para todas as rotas do controller, ou apenas para rotas específicas,
+	// como a rota de listagem de tarefas, por exemplo.
+	// Depois de testado, podemos decidir onde aplicar o interceptor.
 export class TasksController {
-	constructor(private readonly taskService: TasksService) { }
+	constructor(private readonly taskService: TasksService) {}
 
 	@Get()
-	getTasks() {
-		return this.taskService.listAllTasks()
-	}
-
-	@Get("/busca")
-	findManyTasks(@Query() queryParam: any) {
-		return this.taskService.listAllTasks()
+	@UseInterceptors(LoggerInterceptor)
+	@UseInterceptors(AddHeaderInterceptor)
+	// Depois de testado no Postmamp, podemos definir um DTO para os parâmetros de consulta
+	//findAllTasks(@Query() params: any) {
+	findAllTasks(@Query() paginationDto: PaginationDto) {
+		//console.log(params)
+		//console.log(paginationDto)
+		return this.taskService.findAll(paginationDto)
 	}
 
 	@Get(":id")
-	findSingleTask(@Param('id') id: string) {
-		return this.taskService.findOneTask(id)
+	findOneTask(@Param('id', ParseIntPipe) id: number) {
+		return this.taskService.findOne(id)
 	}
 
 	@Post()
-	createTask(@Body() body: any) {
-		return this.taskService.create(body)
+	@UseInterceptors(BodyCreateTaskInterceptor)
+	createTask(@Body() createTaskDto: CreateTaskDto) {
+		return this.taskService.create(createTaskDto)
 	}
 
 	@Put(":id")
-	updateTask(@Param('id') id: string, @Body() body: any) {
-		return this.taskService.update(id, body)
+	updateTask(@Param("id", ParseIntPipe) id: number, @Body() updateTaskDto: UpdateTaskDto) {
+		return this.taskService.update(id, updateTaskDto)
 	}
 
 	@Delete(":id")
-	deleteTask(@Param("id") id: string) {
+	deleteTask(@Param("id", ParseIntPipe) id: number) {
 		return this.taskService.delete(id)
 	}
 }
