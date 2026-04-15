@@ -1,7 +1,7 @@
 -- CreateTable
 CREATE TABLE `Task` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(191) NOT NULL,
+    `title` VARCHAR(191) NOT NULL,
     `description` VARCHAR(191) NOT NULL,
     `completed` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
